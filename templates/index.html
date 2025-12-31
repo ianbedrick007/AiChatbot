@@ -15,12 +15,15 @@
             <div class="header-content">
                 <div class="avatar"></div>
                 <div class="header-info">
-                    <h1>Chat</h1>
+                    <h1>{% if username %}{{ username }}{% else %}Chat{% endif %}</h1>
                     <p class="status">Online</p>
                 </div>
-                <form action="{{ url_for('clear_messages') }}" method="post" style="margin-left: auto;">
-                    <button type="submit" style="background: transparent; border: 1px solid rgba(255,255,255,0.5); color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Clear Chat</button>
+            </div>
+            <div class="header-actions">
+                <form action="{{ url_for('clear_messages') }}" method="post" style="display: inline;">
+                    <button type="submit" class="header-button">Clear</button>
                 </form>
+                <a href="{{ url_for('logout') }}" class="header-button">Logout</a>
             </div>
         </div>
         

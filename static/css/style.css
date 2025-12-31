@@ -75,6 +75,36 @@ body {
     min-height: 64px;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--md-spacing-sm);
+}
+
+.header-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: var(--md-spacing-xs) var(--md-spacing-md);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, box-shadow 0.2s;
+    display: inline-block;
+    font-family: 'Roboto', sans-serif;
+}
+
+.header-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: var(--md-elevation-2);
+}
+
+.header-button:active {
+    background: rgba(255, 255, 255, 0.25);
+}
+
 .header-content {
     display: flex;
     align-items: center;
