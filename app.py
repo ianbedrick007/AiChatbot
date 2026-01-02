@@ -118,6 +118,7 @@ def index():
             # Get last 10 messages for context (adjust number as needed)
             recent_messages = Message.query.filter_by(user_id=current_user.id) \
                 .order_by(Message.timestamp.desc()) \
+                .limit(20)\
                 .all()
 
             conversation_history = [
