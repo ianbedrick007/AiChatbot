@@ -11,3 +11,4 @@ alembic~=1.17.2
 SQLAlchemy~=2.0.45
 Werkzeug~=3.0.1
 pydantic~=2.12.5
+gunicorn~=23.0.0
