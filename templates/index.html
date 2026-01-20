@@ -10,6 +10,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Fix for mobile browsers where address bar covers the bottom */
+        .chat-wrapper {
+            height: 100dvh !important;
+        }
+    </style>
 </head>
 <body class="chat-body">
     <div class="chat-wrapper">
