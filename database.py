@@ -16,10 +16,14 @@ load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = os.getenv("CHATBOT_DB")
 
-connect_args = {}
+if SQLALCHEMY_DATABASE_URL:
+    # Clean up potential artifacts from .env parsing (whitespace, quotes, \r from Windows)
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.strip().strip('"').strip("'")
+
 if not SQLALCHEMY_DATABASE_URL:
     SQLALCHEMY_DATABASE_URL = "sqlite:///./chatbot.db"
 
+connect_args = {}
 if "sqlite" in SQLALCHEMY_DATABASE_URL:
     connect_args = {"check_same_thread": False}
 

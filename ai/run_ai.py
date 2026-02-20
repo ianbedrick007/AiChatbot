@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 load_dotenv()
 
-api_key = os.getenv("OPENROUTER_API_KEY")
+api_key =  os.getenv("OPENAI_API_KEY")
 ai_model = os.getenv("OPEN_ROUTER_MODEL")
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",

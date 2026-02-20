@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from typing import Annotated
 
@@ -12,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from ai.run_ai import get_ai_response, update_conversation_history, get_conversation_history
@@ -20,10 +22,10 @@ from database import get_db, engine, get_current_user
 from models import Business
 from models import User, Base, Message, Product
 from routers import products, users
-from schemas import ProductResponse
 # Import WhatsApp bot router
 from whatsapp_bot.app import router as whatsapp_router, configure_logging
-from whatsapp_bot.app.utils.whatsapp_utils import toggle_ai_status, get_text_message_input, send_message, AI_DISABLED_USERS
+from whatsapp_bot.app.utils.whatsapp_utils import toggle_ai_status, get_text_message_input, send_message, \
+    AI_DISABLED_USERS
 
 
 @asynccontextmanager
@@ -35,6 +37,15 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Add middleware to handle proxy headers for HTTPS
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
+# Get the directory where main.py is located
+current_dir = os.path.dirname(os.path.realpath(__file__))
+static_dir = os.path.join(current_dir, "static")
+media_dir = os.path.join(current_dir, "media")
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/media", StaticFiles(directory="media"), name="media")
 
@@ -92,8 +103,8 @@ async def chat_post(
     if user_message:
         # Get last 20 messages for context (isolated by username for web chat)
         recent_messages = get_conversation_history(
-            business_id=business.id, 
-            customer_id=current_user.username, 
+            business_id=business.id,
+            customer_id=current_user.username,
             db=db
         )
 
@@ -108,9 +119,9 @@ async def chat_post(
 
         # Save user message
         update_conversation_history(
-            db=db, 
-            business_id=business.id, 
-            text=user_message, 
+            db=db,
+            business_id=business.id,
+            text=user_message,
             sender=current_user.username,
             customer_id=current_user.username,
             customer_name=current_user.username,
@@ -120,9 +131,9 @@ async def chat_post(
 
         # Save bot response
         update_conversation_history(
-            db=db, 
-            business_id=business.id, 
-            text=bot_response, 
+            db=db,
+            business_id=business.id,
+            text=bot_response,
             sender="bot",
             customer_id=current_user.username,
             customer_name=current_user.username,
@@ -213,7 +224,7 @@ def get_customers_list(
     for msg in whatsapp_messages:
         c_id = msg.customer_id
         if not c_id: continue
-        
+
         if c_id not in customers:
             customers[c_id] = {
                 "id": c_id,
@@ -245,7 +256,7 @@ def get_customer_messages(
         db.query(Message)
         .filter(Message.business_id == business.id)
         .filter(Message.platform == 'whatsapp')
-        .filter(Message.customer_id == customer_name) # customer_name route param is actually c_id/wa_id
+        .filter(Message.customer_id == customer_name)  # customer_name route param is actually c_id/wa_id
         .order_by(Message.timestamp.asc())
         .all()
     )
@@ -295,18 +306,19 @@ def api_toggle_ai(
         response = send_message(data)
 
         if not response:
-            raise HTTPException(status_code=400, detail="Failed to send WhatsApp message. The customer ID might be invalid (names are not allowed, only phone numbers).")
+            raise HTTPException(status_code=400,
+                                detail="Failed to send WhatsApp message. The customer ID might be invalid (names are not allowed, only phone numbers).")
 
         # Save to database so it appears in the chat history
         # Since we don't have the profile name here, we'll try to find it from previous messages or use ID
         prev_msg = db.query(Message).filter_by(customer_id=request.customer_id).first()
         customer_name = prev_msg.customer_name if prev_msg else request.customer_id
-        
+
         update_conversation_history(
-            db=db, 
-            business_id=business.id, 
-            text=request.message, 
-            sender='bot', 
+            db=db,
+            business_id=business.id,
+            text=request.message,
+            sender='bot',
             customer_id=request.customer_id,
             customer_name=customer_name,
             is_bot=True,
